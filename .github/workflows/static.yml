@@ -1,32 +1,26 @@
-# Simple workflow for deploying static content to GitHub Pages
+# 웹사이트 자동 배포 (GitHub Pages)
+# 'Static HTML' 기본 틀을 두 단계(build → deploy)로 나눈 것 — 가끔 나는 'No artifacts named github-pages' 오류를 피해요
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
+  # main에 push하면 자동으로 실행
   push:
     branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
+  # Actions 화면의 'Run workflow' 버튼으로도 실행
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  # 1단계: 파일 묶어서 올리기
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,8 +30,16 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
           path: '.'
+
+  # 2단계: 웹사이트로 내보내기
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
